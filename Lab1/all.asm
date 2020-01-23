@@ -15,8 +15,14 @@ start:
     mov ax, a
     mov bx, b
     ; Adding the two values
-    add ax, bx
-    mov c, ax
+    ; If there is a carry add it to cx register
+    jnc store
+    inc cx    
+store: 
+    mov word ptr c, ax
+    ; Copy the most significant 16bits of ans from cx
+    ; cx has carry
+    mov word ptr c+2, cx
     
     mov ax, a
     mov bx, b
