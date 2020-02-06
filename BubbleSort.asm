@@ -31,7 +31,8 @@ InnerLoop:
   jc Continue ; Ascending
   
   ; jnc Continue ; Descending
-  mov dl, [si + 1]
+  ; For 16 bit change: [si + 1] => [si + 2]
+  mov dl, [si + 1] 
   xchg [si], dl
   mov [si + 1], dl
 

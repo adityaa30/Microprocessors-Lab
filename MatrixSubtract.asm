@@ -29,9 +29,11 @@ Loop_i:
     sub ax, bx
     
     mov [si], ax
-    inc si
-    inc di
-    dec cx
+    ; Here we add 2 because 
+    add si, 2h
+    add di, 2h
+    sub cx, 0001h
+    
     cmp cx, 0
     jnz Loop_i
 
