@@ -15,8 +15,9 @@ start:
   ; Store size of array in CH & CL
   mov ch, sz
   dec ch
-OuterLoop:
   ; This loop runs from i = 0 to size - 1
+InitInnerLoop:
+  ; Initalize the inner loop again
   mov cl, sz
   dec cl
   lea si, arr
@@ -28,6 +29,7 @@ InnerLoop:
   mov bl, [si + 1]
   cmp al, bl
   jc Continue ; Ascending
+  
   ; jnc Continue ; Descending
   mov dl, [si + 1]
   xchg [si], dl
@@ -38,7 +40,7 @@ Continue:
   dec cl
   jnz InnerLoop
   dec ch
-  jnz OuterLoop
+  jnz InitInnerLoop
 
   ; Interrupt for breakpoint
   int 3
