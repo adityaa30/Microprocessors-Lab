@@ -198,16 +198,17 @@ ReadNumber endp
 PrintNextLine proc
     push ax
     push dx
-
-    mov dx,13
-    mov ah,2
-    int 21h  
-    mov dx,10
-    mov ah,2
+    
+    mov dl, 10
+    mov ah, 02h
+    int 21h
+    mov dl, 13
+    mov ah, 02h
     int 21h
 
     pop dx
     pop ax
+    ret
 PrintNextLine endp
 
 code ends
