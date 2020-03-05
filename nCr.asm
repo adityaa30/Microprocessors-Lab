@@ -73,7 +73,7 @@ Factorial endp
 
 FactorialHelper proc
   cmp bx, 1
-  jz FactorialHelperResult
+  jle FactorialHelperResult
   mul bx
   sub bx, 1
   call FactorialHelper 

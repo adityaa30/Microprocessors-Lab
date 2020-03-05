@@ -1,69 +1,81 @@
 data segment
     str_inp db 'Enter string: $'
-    input db '$'
+    str_success db 'OK - Input is palindrome$'
+    str_fail db 'FAIL - Input is not palindrome$'
+    new db '$'
+    s db 20 dup(0)
 data ends
-
-
-code segment
-assume cs:code, ds:data
+code segment              
+assume cs:code,ds:data
 start:
-mov ax, data
-mov ds, ax
+    mov ax,data
+    mov ds,ax
+
+    lea dx, str_inp
+    mov ah, 09h
+    int 21h
+    ; input string
+
+    call ReadString
+    call CheckPalidrome
+
+    ;Terminate the program
+    mov ah, 4ch     
+    int 21h
 
 
-; Procedure to input a number and save to palindrome register
+; Procedure to take input and save to `s`
+; Length is saved in bx register
 ReadString proc
-    ; Save values of ax, cx & dx registers
     push ax
-    push bx
-    push cx
-    push dx
-    push si
-
-    lea si, palindrome
-LoopReadString:
-    ; Read a character in al register
-    mov ah, 1
-    int 21h ; Using DOS API to take input
-    
-    ; Check if the input is [a-z]
-    cmp al, 'a'
-    jb BreakReadString
-    cmp al, 'z'
-    ja BreakReadString
-    
-    ; Save the digit
-    mov [si], al
-    add si, 1h ; Add 1 for byte (2 for word)
-
-    ; Continue untill user enters a invalid character
-    jmp LoopReadString
-
-BreakReadString:
-    pop si
-    pop dx
-    pop cx
-    pop bx
+    mov bx, 00
+ReadStringTakeMore:
+    ; interrupt to take character input
+    mov ah, 01h
+    int 21h
+    cmp al, 0dh
+    je ReadStringDone
+    mov [s+bx], al
+    inc bx
+    loop ReadStringTakeMore
+ReadStringDone:
     pop ax
     ret
 ReadString endp
 
-; Prints newline
-PrintNextLine proc
-    push ax
-    push dx
+; Procedure to check if string is palidrome
+; String length should be in bx
+CheckPalidrome proc
+    push di
     
-    mov dl, 10
-    mov ah, 02h
+    ; Two counter variables:
+    ; i is di which start from left
+    ; j is bx which start from right
+    mov di, 0
+    dec bx
+; bx is at end of string after input
+; compare [s+bx] and [s+di]
+CheckPalidromeChar:
+    mov al, [s+bx]
+    cmp al, [s+di]
+    jne CheckPalidromeFail
+    inc di ; ++i
+    dec bx ; --j
+    jnz CheckPalidromeChar
+    
+    ; Everthing is ok -> Palidrome string
+    lea dx, str_success
+    mov ah, 09h
     int 21h
-    mov dl, 13
-    mov ah, 02h
+    jmp CheckPalidromeEnd
+CheckPalidromeFail:
+    lea dx, str_fail
+    mov ah,09h
     int 21h
-
-    pop dx
-    pop ax
+CheckPalidromeEnd:
+    pop di
     ret
-PrintNextLine endp
+CheckPalidrome endp
 
 code ends
 end start
