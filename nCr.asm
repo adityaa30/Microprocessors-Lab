@@ -46,6 +46,7 @@ start:
   div bx
   div cx
 
+  aam
   mov bx, ax
   call PrintNextLine
   mov ah, 09h
@@ -53,7 +54,12 @@ start:
   int 21h
   ; Print the number
   
-  call printBx
+  call PrintBx
+
+  
+  ;to terminate the program
+  mov ah, 4ch     
+  int 21h
 
 Factorial proc
   push ax
@@ -138,114 +144,18 @@ PrintNextLine proc
     ret
 PrintNextLine endp
 
- printBx proc
-    push ax ; Store current value of ax
-
-    ; Print Most Significant Nibble in bx
-    mov ax, bx
-    shr ax, 12 ; Shift Right by 3 nibbles to get most significant nibble of bx in least of ax
-
-    mov dl, al
-    add dl, "0" ; Convert to ASCII from hex
-    cmp dl, "9"
-    jle cont0
-    add dl, 7
-    cont0:
-    mov ah, 02h ; Print character to stdout
+; Print number
+PrintBx proc
+    mov dl, bh ; since the values are in bx, bh part
+    add dl, 30h ; ascii adjustment
+    mov ah, 02h ; to print in dos
     int 21h
-
-    ; Print Second Most Significant Nibble in bx
-    mov ax, bx
-    and ax, 0F00h ; Make all nibbles 0 other than second most significant
-    shr ax, 8 ; Shift Right by 2 nibbles to get second most significant nibble of bx in least of ax
-
-    mov dl, al
-    add dl, "0" ; Convert to ASCII from hex
-    cmp dl, "9"
-    jle cont1
-    add dl, 7
-    cont1:
-    mov ah, 02h ; Print character to stdout
+    mov dl, bl ; bl part 
+    add dl, 30h ; ascii adjustment
+    mov ah, 02h ; to print in dos
     int 21h
-
-    ; Print Second Least Significant Nibble in bx
-    mov ax, bx
-    and ax, 00F0h ; Make all nibbles 0 other than second least significant
-    shr ax, 4 ; Shift Right by 1 nibble to get second least significant nibble of bx in least of ax
-
-    mov dl, al
-    add dl, "0" ; Convert to ASCII from hex
-    cmp dl, "9"
-    jle cont2
-    add dl, 7
-    cont2:
-    mov ah, 02h ; Print character to stdout
-    int 21h
-
-    ; Print Least Significant Nibble in bx
-    mov ax, bx
-    and ax, 000Fh ; Make all nibbles 0 other than least significant
-
-    mov dl, al
-    add dl, "0" ; Convert to ASCII from hex
-    cmp dl, "9"
-    jle cont3
-    add dl, 7
-    cont3:
-    mov ah, 02h ; Print character to stdout
-    int 21h
-
-    pop ax ; Restore value of ax
     ret
-printBx endp
-
-
-; Procedure to print value in ax register
-PrintDecimal proc            
-  push bx
-  push cx
-  push dx
-
-  ; initilize count 
-  mov cx, 0 
-  mov dx, 0 
-PrintLoop: 
-  ; if ax is zero 
-  cmp ax, 0
-  je PrintStuff
-   
-  mov bx, 0ah ; initilize bx to 10         
-  mov dx, 0h ; Make dx = 0
-
-  div bx ; extract the last digit 
-  push dx ; push it in the stack 
-  inc cx ; increment the count 
-    
-  jmp PrintLoop 
-PrintStuff: 
-  cmp cx, 0 ; If cx = 0 then stop
-  je PrintEnd
-    
-  ; pop the top of stack 
-  pop dx 
-    
-  ; add 48 so that it  
-  ; represents the ASCII 
-  ; value of digits 
-  add dx, 030h
-    
-  mov ah, 02h ; interuppt to print a character  
-  int 21h 
-  
-  dec cx ; decrease the count  
-  jmp PrintStuff 
-PrintEnd:
-
-  pop dx
-  pop cx
-  pop bx
-  ret 
-PrintDecimal endp 
+PrintBx endp      
 
 code ends
 end start
