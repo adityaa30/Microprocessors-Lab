@@ -3,6 +3,7 @@ data segment
   r dw ?
   str_n db 'Enter n: $'
   str_r db 'Enter r: $'
+  str_ans db 'Answer: $'
 data ends
 
 code segment
@@ -28,43 +29,51 @@ start:
 
   mov bx, n
   call Factorial
-  mov ax, bx ; Save n! to ax
+  push bx ; Save n! to stack
 
   mov bx, r
   call Factorial
-  div bx ; Save (n! / r!) to ax
+  push bx ; Save r! to stack
 
   mov bx, n
   sub bx, r
   call Factorial 
-  div bx ; Save (n! / (r! * (n-r)!)) to ax
+  push bx ; Save (n-r)! to stack
+
+  pop cx
+  pop bx
+  pop ax
+  div bx
+  div cx
 
   mov bx, ax
-  call PrintBx
+  call PrintNextLine
+  mov ah, 09h
+  lea dx, str_ans
+  int 21h
+  ; Print the number
+  
+  call printBx
 
 Factorial proc
-  ; Assume input is in bx
-  ; Output is in bx
   push ax
-  push cx
-  push dx
-
-  ; Starting factorial code
-  mov cx, bx ; Value of i : a to 1
-
-  cmp cx, 01
-  jnz factorial
-factorial:
-  dec cx
-  mul cx
-  cmp cx, 01
-  jnz factorial
-
-  pop dx
-  pop cx
+  mov ax, 1
+  call FactorialHelper
+  mov bx, ax
   pop ax
   ret
 Factorial endp
+
+
+FactorialHelper proc
+  cmp bx, 1
+  jz FactorialHelperResult
+  mul bx
+  sub bx, 1
+  call FactorialHelper 
+FactorialHelperResult:
+  ret
+endp
 
 ; Procedure to input a number and save to bx register
 ReadNumber proc
@@ -116,15 +125,20 @@ ReadNumber endp
 PrintNextLine proc
     push ax
     push dx
-    mov ah, 09h
-    mov dx, offset lnfd
+    
+    mov dl, 10
+    mov ah, 02h
     int 21h
+    mov dl, 13
+    mov ah, 02h
+    int 21h
+
     pop dx
     pop ax
     ret
 PrintNextLine endp
 
-PrintBx proc
+ printBx proc
     push ax ; Store current value of ax
 
     ; Print Most Significant Nibble in bx
@@ -183,9 +197,55 @@ PrintBx proc
 
     pop ax ; Restore value of ax
     ret
-PrintBx endp
+printBx endp
 
 
+; Procedure to print value in ax register
+PrintDecimal proc            
+  push bx
+  push cx
+  push dx
+
+  ; initilize count 
+  mov cx, 0 
+  mov dx, 0 
+PrintLoop: 
+  ; if ax is zero 
+  cmp ax, 0
+  je PrintStuff
+   
+  mov bx, 0ah ; initilize bx to 10         
+  mov dx, 0h ; Make dx = 0
+
+  div bx ; extract the last digit 
+  push dx ; push it in the stack 
+  inc cx ; increment the count 
+    
+  jmp PrintLoop 
+PrintStuff: 
+  cmp cx, 0 ; If cx = 0 then stop
+  je PrintEnd
+    
+  ; pop the top of stack 
+  pop dx 
+    
+  ; add 48 so that it  
+  ; represents the ASCII 
+  ; value of digits 
+  add dx, 030h
+    
+  mov ah, 02h ; interuppt to print a character  
+  int 21h 
+  
+  dec cx ; decrease the count  
+  jmp PrintStuff 
+PrintEnd:
+
+  pop dx
+  pop cx
+  pop bx
+  ret 
+PrintDecimal endp 
 
 code ends
 end start
